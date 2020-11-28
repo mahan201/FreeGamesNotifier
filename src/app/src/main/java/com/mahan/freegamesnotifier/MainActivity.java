@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
         scrollView = findViewById(R.id.imgScroll);
         placeHolderShowing = true;
 
+        //Calls the JsonTask to retrieve the top free games of this week.
         new JsonTask(this).execute("https://www.reddit.com/r/freegames/top/.json?t=week");
 
     }
