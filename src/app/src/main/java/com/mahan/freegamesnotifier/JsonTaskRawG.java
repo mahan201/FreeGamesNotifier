@@ -57,6 +57,8 @@ public class JsonTaskRawG extends AsyncTask<String,Void,Void> {
             data  = buffer.toString();
             jsonObject = new JSONObject(data);
 
+            //Up to here is the same as JsonTask but now we extract image URL, name and description.
+
             imgURL = jsonObject.getJSONArray("results").getJSONObject(0).getString("background_image");
             name = jsonObject.getJSONArray("results").getJSONObject(0).getString("name");
 
