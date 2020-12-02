@@ -78,7 +78,7 @@ public class JsonTaskRawG extends AsyncTask<String,Void,Void> {
             data  = buffer.toString();
             JSONObject jsonObject2 = new JSONObject(data);
 
-            gameDescription = jsonObject2.getString("description");
+            gameDescription = jsonObject2.getString("description_raw");
 
             return null;
 

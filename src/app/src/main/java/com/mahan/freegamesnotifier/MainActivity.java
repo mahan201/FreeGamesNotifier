@@ -15,6 +15,12 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.joooonho.SelectableRoundedImageView;
 
@@ -26,6 +32,7 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity implements JsonTask.JsonTaskInterface {
     LinearLayout scrollView;
+    TextView placeHolder;
 
     public static final String EXTRA_IMAGE = "com.mahan.freegamesnotifier.gameImage";
     public static final String EXTRA_TITLE = "com.mahan.freegamesnotifier.postName";
@@ -33,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
     public static final String EXTRA_LINK = "com.mahan.freegamesnotifier.storeLink";
 
     boolean placeHolderShowing;
+    RequestQueue rQueue;
 
 
     @Override
@@ -42,10 +50,30 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
         setContentView(R.layout.activity_main);
 
         scrollView = findViewById(R.id.imgScroll);
+        placeHolder = findViewById(R.id.placeHolder);
         placeHolderShowing = true;
+        rQueue = Volley.newRequestQueue(this);
 
-        //Calls the JsonTask to retrieve the top free games of this week.
-        new JsonTask(this).execute("https://www.reddit.com/r/freegames/top/.json?t=week");
+        String url = "https://www.reddit.com/r/freegames/top/.json?t=week";
+
+        StringRequest request = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            setJson(new JSONObject(response));
+                        } catch (JSONException e) {
+                            placeHolder.setText("Failed to get games.");
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                placeHolder.setText("Failed to get games.");
+            }
+        });
+
+        rQueue.add(request);
 
     }
 
@@ -109,14 +137,73 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
             for(int i = 0; i < posts.length(); i++){
                 JSONObject post = posts.getJSONObject(i).getJSONObject("data");
                 String title = post.getString("title");
-                String link = post.getString("url");
+                final String link = post.getString("url");
 
-                new JsonTaskRawG(this).execute("https://api.rawg.io/api/games?search=" + title.replace(" ","+"),link);
+                String url = "https://api.rawg.io/api/games?search="+ title.replace(" ","+");
+
+                StringRequest request = new StringRequest(Request.Method.GET, url,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+
+                                try {
+                                    JSONObject jsonObject = new JSONObject(response);
+
+                                    final String imgURL = jsonObject.getJSONArray("results")
+                                            .getJSONObject(0)
+                                            .getString("background_image");
+
+                                    final String name = jsonObject.getJSONArray("results")
+                                            .getJSONObject(0)
+                                            .getString("name");
+
+                                    final String url2 = "https://api.rawg.io/api/games/" +
+                                            jsonObject.getJSONArray("results")
+                                                    .getJSONObject(0).getString("slug");
+
+                                    StringRequest request2 = new StringRequest(Request.Method.GET,
+                                            url2,
+                                            new Response.Listener<String>() {
+                                                @Override
+                                                public void onResponse(String response) {
+                                                    try {
+                                                        JSONObject jsonObject2 = new JSONObject(response);
+                                                        String gameDescription = jsonObject2.getString("description_raw");
+
+                                                        setImage(imgURL,name,link,gameDescription);
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+
+                                                }
+                                            }, new Response.ErrorListener() {
+                                        @Override
+                                        public void onErrorResponse(VolleyError error) {
+
+                                        }
+                                    });
+
+                                    rQueue.add(request2);
+
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                });
+
+                rQueue.add(request);
 
             }
 
         } catch (JSONException e) {
-            e.printStackTrace();
+            placeHolder.setText("Failed to get games.");
         }
 
     }
