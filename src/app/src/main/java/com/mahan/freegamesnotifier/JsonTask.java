@@ -104,7 +104,7 @@ public class JsonTask extends AsyncTask<String,Void,JSONObject> {
         of doInBackground. By default passes the json object to the caller's setJson
          */
         super.onPostExecute(object);
-        parent.setJson(object);
+
 
     }
 

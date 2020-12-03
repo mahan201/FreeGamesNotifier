@@ -108,7 +108,6 @@ public class JsonTaskRawG extends AsyncTask<String,Void,Void> {
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
 
-        parent.setImage(imgURL,name,storeLink,gameDescription);
 
     }
 }

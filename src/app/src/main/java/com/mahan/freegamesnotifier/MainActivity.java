@@ -3,6 +3,8 @@ package com.mahan.freegamesnotifier;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -33,6 +35,7 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity implements JsonTask.JsonTaskInterface {
     LinearLayout scrollView;
     TextView placeHolder;
+    SwipeRefreshLayout refreshLayout;
 
     public static final String EXTRA_IMAGE = "com.mahan.freegamesnotifier.gameImage";
     public static final String EXTRA_TITLE = "com.mahan.freegamesnotifier.postName";
@@ -51,8 +54,21 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
 
         scrollView = findViewById(R.id.imgScroll);
         placeHolder = findViewById(R.id.placeHolder);
-        placeHolderShowing = true;
         rQueue = Volley.newRequestQueue(this);
+        refreshLayout = findViewById(R.id.swipeRefresh);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadGames();
+                refreshLayout.setRefreshing(false);
+            }
+        });
+        loadGames();
+
+    }
+
+    public void loadGames(){
+        placeHolderShowing = true;
 
         String url = "https://www.reddit.com/r/freegames/top/.json?t=week";
 
@@ -74,7 +90,6 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
         });
 
         rQueue.add(request);
-
     }
 
 
@@ -156,8 +171,7 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
                                     final String name = jsonObject.getJSONArray("results")
                                             .getJSONObject(0)
                                             .getString("name");
-
-                                    final String url2 = "https://api.rawg.io/api/games/" +
+                                    String url2 = "https://api.rawg.io/api/games/" +
                                             jsonObject.getJSONArray("results")
                                                     .getJSONObject(0).getString("slug");
 
@@ -166,10 +180,10 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
                                             new Response.Listener<String>() {
                                                 @Override
                                                 public void onResponse(String response) {
+                                                    JSONObject jsonObject2 = null;
                                                     try {
-                                                        JSONObject jsonObject2 = new JSONObject(response);
+                                                        jsonObject2 = new JSONObject(response);
                                                         String gameDescription = jsonObject2.getString("description_raw");
-
                                                         setImage(imgURL,name,link,gameDescription);
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
