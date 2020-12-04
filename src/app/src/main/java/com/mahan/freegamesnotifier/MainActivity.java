@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
     }
 
     public void loadGames(){
+        placeHolder.setText("Fetching Games.");
         placeHolderShowing = true;
 
         String url = "https://www.reddit.com/r/freegames/top/.json?t=week";
