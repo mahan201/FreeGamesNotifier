@@ -16,16 +16,16 @@ import java.util.ArrayList;
 public class ImageAdapter extends PagerAdapter {
 
     private Context mContext;
-    private ArrayList<String> images;
+    private ArrayList<String> imageLst;
 
-    ImageAdapter (Context context, ArrayList<String> images){
+    ImageAdapter (Context context, ArrayList<String> urls){
         mContext = context;
-        this.images = images;
+        imageLst = urls;
     }
 
     @Override
     public int getCount() {
-        return images.size();
+        return imageLst.size();
     }
 
     @Override
@@ -36,9 +36,9 @@ public class ImageAdapter extends PagerAdapter {
     @NonNull
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
-        String url = images.get(position);
+        String url = imageLst.get(position);
         ImageView imageView = new ImageView(mContext);
-        imageView.setScaleType(ImageView.ScaleType.FIT_START);
+        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         Glide.with(mContext).load(url).into(imageView);
         container.addView(imageView,0);
         return imageView;

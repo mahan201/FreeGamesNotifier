@@ -171,15 +171,7 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
                                             .getJSONObject(0)
                                             .getString("background_image");
 
-                                    final String imgURL2;
-                                    if (jsonObject.getJSONArray("results")
-                                            .getJSONObject(0).has("background_image_additional")) {
 
-                                         imgURL2 = jsonObject.getJSONArray("results")
-                                                .getJSONObject(0)
-                                                .getString("background_image_additional");
-                                    }
-                                    else{imgURL2 = "NULL";}
 
                                     final String name = jsonObject.getJSONArray("results")
                                             .getJSONObject(0)
@@ -197,7 +189,15 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
                                                     try {
                                                         jsonObject2 = new JSONObject(response);
                                                         String gameDescription = jsonObject2.getString("description_raw");
-                                                        setImage(imgURL, imgURL2,name,link,gameDescription);
+
+                                                        final String imgURL2;
+                                                        if (jsonObject2.has("background_image_additional")) {
+
+                                                            imgURL2 = jsonObject2.getString("background_image_additional");
+                                                        }
+                                                        else{imgURL2 = "NULL";}
+
+                                                        setImage(imgURL,imgURL2,name,link,gameDescription);
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }

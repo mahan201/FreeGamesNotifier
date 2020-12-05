@@ -79,7 +79,7 @@ public class gameDetail extends AppCompatActivity {
                 break;
 
             case "google":
-                storeBtn.setText("DOWNLOAD FROM G PLAY");
+                storeBtn.setText("Get IT ON G PLAY");
                 storeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.gplay,0,0,0);
                 storeBtn.setBackgroundColor(Color.parseColor("#50BA6A"));
                 break;
