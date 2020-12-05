@@ -37,7 +37,8 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
     TextView placeHolder;
     SwipeRefreshLayout refreshLayout;
 
-    public static final String EXTRA_IMAGE = "com.mahan.freegamesnotifier.gameImage";
+    public static final String EXTRA_IMAGE1 = "com.mahan.freegamesnotifier.gameImage1";
+    public static final String EXTRA_IMAGE2 = "com.mahan.freegamesnotifier.gameImage2";
     public static final String EXTRA_TITLE = "com.mahan.freegamesnotifier.postName";
     public static final String EXTRA_DESC = "com.mahan.freegamesnotifier.gameDesc";
     public static final String EXTRA_LINK = "com.mahan.freegamesnotifier.storeLink";
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
 
 
 
-    public void setImage(final String image, final String name, final String storeLink, final String gameDescription){
+    public void setImage(final String image, final String image2, final String name, final String storeLink, final String gameDescription){
         /*
         This method is called by JsonTaskRawG which provides the information for a given game.
          */
@@ -127,7 +128,8 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
                 NotificationHelper n = new NotificationHelper(context);
                 n.getNotification("MyTitle","MyString");
                 Intent intent = new Intent(context,gameDetail.class);
-                intent.putExtra(EXTRA_IMAGE, image);
+                intent.putExtra(EXTRA_IMAGE1, image);
+                intent.putExtra(EXTRA_IMAGE2,image2);
                 intent.putExtra(EXTRA_TITLE,name);
                 intent.putExtra(EXTRA_LINK,storeLink);
                 intent.putExtra(EXTRA_DESC,gameDescription);
@@ -169,6 +171,16 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
                                             .getJSONObject(0)
                                             .getString("background_image");
 
+                                    final String imgURL2;
+                                    if (jsonObject.getJSONArray("results")
+                                            .getJSONObject(0).has("background_image_additional")) {
+
+                                         imgURL2 = jsonObject.getJSONArray("results")
+                                                .getJSONObject(0)
+                                                .getString("background_image_additional");
+                                    }
+                                    else{imgURL2 = "NULL";}
+
                                     final String name = jsonObject.getJSONArray("results")
                                             .getJSONObject(0)
                                             .getString("name");
@@ -185,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements JsonTask.JsonTask
                                                     try {
                                                         jsonObject2 = new JSONObject(response);
                                                         String gameDescription = jsonObject2.getString("description_raw");
-                                                        setImage(imgURL,name,link,gameDescription);
+                                                        setImage(imgURL, imgURL2,name,link,gameDescription);
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }

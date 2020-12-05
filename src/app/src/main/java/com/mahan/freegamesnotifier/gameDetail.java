@@ -1,6 +1,7 @@
 package com.mahan.freegamesnotifier;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -17,13 +18,15 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import java.util.ArrayList;
+
 public class gameDetail extends AppCompatActivity {
 
-    ImageView imageView;
+    ViewPager viewPager;
     TextView titleView,descView;
     Button storeBtn;
 
-    String image,gameName,gameStore,gameDescription;
+    String image1,image2,gameName,gameStore,gameDescription;
 
 
     @Override
@@ -32,27 +35,28 @@ public class gameDetail extends AppCompatActivity {
         setContentView(R.layout.activity_game_detail);
 
         Intent intent = getIntent();
-        image = intent.getStringExtra(MainActivity.EXTRA_IMAGE);
+        image1 = intent.getStringExtra(MainActivity.EXTRA_IMAGE1);
+        image2 = intent.getStringExtra(MainActivity.EXTRA_IMAGE2);
         gameName = intent.getStringExtra(MainActivity.EXTRA_TITLE);
         gameStore = intent.getStringExtra(MainActivity.EXTRA_LINK);
         gameDescription = intent.getStringExtra(MainActivity.EXTRA_DESC);
         
 
 
-        imageView = findViewById(R.id.imageView);
+        viewPager = findViewById(R.id.viewPager);
         titleView = findViewById(R.id.gameTitle);
         storeBtn = findViewById(R.id.storeBtn);
         descView = findViewById(R.id.gameDesc);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            descView.setText(Html.fromHtml(gameDescription, Html.FROM_HTML_MODE_COMPACT));
-        } else {
-            descView.setText(Html.fromHtml(gameDescription));
-        }
+        descView.setText(gameDescription);
 
         styleBtn();
 
-        Glide.with(this).load(image).into(imageView);
+        ArrayList<String> images = new ArrayList<>();
+        images.add(image1);
+        if(!image2.equals("NULL")){images.add(image2);}
+        ImageAdapter imageAdapter = new ImageAdapter(this,images);
+        viewPager.setAdapter(imageAdapter);
         titleView.setText(gameName);
     }
 
