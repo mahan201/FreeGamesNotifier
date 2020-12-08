@@ -22,6 +22,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.joooonho.SelectableRoundedImageView;
 
 import org.json.JSONArray;
@@ -52,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String[]> gamesList;
     SharedPreferences sharedPreferences;
 
+    AdView mAdView;
+
 
 
     @Override
@@ -59,6 +66,15 @@ public class MainActivity extends AppCompatActivity {
 //        added some comments and ting
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+
+        mAdView = findViewById(R.id.adView);
+
 
         scrollView = findViewById(R.id.imgScroll);
         placeHolder = findViewById(R.id.placeHolder);
@@ -80,6 +96,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadGames(){
+
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
         placeHolder.setText("Fetching Games.");
         placeHolderShowing = true;
 
