@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                     }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    placeHolder.setText("Failed to get games.");
+                    setJson(oldPosts,null);
                 }
             });
 
@@ -137,107 +137,114 @@ public class MainActivity extends AppCompatActivity {
         In this case it goes through post inside "children" array and turns it into a game.
          */
 
-
-        try {
-            final JSONArray posts = json.getJSONObject("data").getJSONArray("children");
-            List<Object> list = separatePosts(savedPosts,posts);
-
-            ArrayList<String[]> oldPosts = (ArrayList<String[]>) list.get(0);
-            JSONArray newPosts = (JSONArray) list.get(1);
-
-            postCount = oldPosts.size() + newPosts.length();
-
-            //FOR OLD POSTS
-            for (int i = 0; i < oldPosts.size(); i++) {
-                String[] post = oldPosts.get(i);
-                System.out.println("OLD POST: " + post[0]);
+        if(json == null){
+            for (int i = 0; i < savedPosts.size(); i++) {
+                String[] post = savedPosts.get(i);
                 setImage(post[0],post[1],post[2],post[3],post[4],post[5]);
             }
-
-            //FOR NEW POSTS
-            for(int i = 0; i < newPosts.length(); i++){
-                JSONObject post = newPosts.getJSONObject(i).getJSONObject("data");
-                final String title = post.getString("title");
-                final String link = post.getString("url");
-
-                System.out.println("NEW POST: " + title);
-
-                String url = "https://api.rawg.io/api/games?search="+ title.replace(" ","+");
-
-                StringRequest request = new StringRequest(Request.Method.GET, url,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-
-                                try {
-                                    JSONObject jsonObject = new JSONObject(response);
-
-                                    final String imgURL = jsonObject.getJSONArray("results")
-                                            .getJSONObject(0)
-                                            .getString("background_image");
-
-
-
-                                    final String name = jsonObject.getJSONArray("results")
-                                            .getJSONObject(0)
-                                            .getString("name");
-                                    String url2 = "https://api.rawg.io/api/games/" +
-                                            jsonObject.getJSONArray("results")
-                                                    .getJSONObject(0).getString("slug");
-
-                                    StringRequest request2 = new StringRequest(Request.Method.GET,
-                                            url2,
-                                            new Response.Listener<String>() {
-                                                @Override
-                                                public void onResponse(String response) {
-                                                    JSONObject jsonObject2 = null;
-                                                    try {
-                                                        jsonObject2 = new JSONObject(response);
-                                                        String gameDescription = jsonObject2.getString("description_raw");
-
-                                                        final String imgURL2;
-                                                        if (jsonObject2.has("background_image_additional")) {
-
-                                                            imgURL2 = jsonObject2.getString("background_image_additional");
-                                                        }
-                                                        else{imgURL2 = "NULL";}
-
-                                                        setImage(title,name,imgURL,imgURL2,gameDescription,link);
-                                                    } catch (JSONException e) {
-                                                        e.printStackTrace();
-                                                    }
-
-                                                }
-                                            }, new Response.ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(VolleyError error) {
-
-                                        }
-                                    });
-
-                                    rQueue.add(request2);
-
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-
-
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-
-                    }
-                });
-
-                rQueue.add(request);
-            }
-
-
-        } catch (JSONException e) {
-            placeHolder.setText("Failed to get games.");
         }
+        else {
+            try {
+                final JSONArray posts = json.getJSONObject("data").getJSONArray("children");
+                List<Object> list = separatePosts(savedPosts,posts);
+
+                ArrayList<String[]> oldPosts = (ArrayList<String[]>) list.get(0);
+                JSONArray newPosts = (JSONArray) list.get(1);
+
+                postCount = oldPosts.size() + newPosts.length();
+
+                //FOR OLD POSTS
+                for (int i = 0; i < oldPosts.size(); i++) {
+                    String[] post = oldPosts.get(i);
+                    setImage(post[0],post[1],post[2],post[3],post[4],post[5]);
+                }
+
+                //FOR NEW POSTS
+                for(int i = 0; i < newPosts.length(); i++){
+                    JSONObject post = newPosts.getJSONObject(i).getJSONObject("data");
+                    final String title = post.getString("title");
+                    final String link = post.getString("url");
+
+
+                    String url = "https://api.rawg.io/api/games?search="+ title.replace(" ","+");
+
+                    StringRequest request = new StringRequest(Request.Method.GET, url,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+
+                                    try {
+                                        JSONObject jsonObject = new JSONObject(response);
+
+                                        final String imgURL = jsonObject.getJSONArray("results")
+                                                .getJSONObject(0)
+                                                .getString("background_image");
+
+
+
+                                        final String name = jsonObject.getJSONArray("results")
+                                                .getJSONObject(0)
+                                                .getString("name");
+                                        String url2 = "https://api.rawg.io/api/games/" +
+                                                jsonObject.getJSONArray("results")
+                                                        .getJSONObject(0).getString("slug");
+
+                                        StringRequest request2 = new StringRequest(Request.Method.GET,
+                                                url2,
+                                                new Response.Listener<String>() {
+                                                    @Override
+                                                    public void onResponse(String response) {
+                                                        JSONObject jsonObject2 = null;
+                                                        try {
+                                                            jsonObject2 = new JSONObject(response);
+                                                            String gameDescription = jsonObject2.getString("description_raw");
+
+                                                            final String imgURL2;
+                                                            if (jsonObject2.has("background_image_additional")) {
+
+                                                                imgURL2 = jsonObject2.getString("background_image_additional");
+                                                            }
+                                                            else{imgURL2 = "NULL";}
+
+                                                            setImage(title,name,imgURL,imgURL2,gameDescription,link);
+                                                        } catch (JSONException e) {
+                                                            e.printStackTrace();
+                                                        }
+
+                                                    }
+                                                }, new Response.ErrorListener() {
+                                            @Override
+                                            public void onErrorResponse(VolleyError error) {
+
+                                            }
+                                        });
+
+                                        rQueue.add(request2);
+
+
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
+
+                                }
+                            }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+
+                        }
+                    });
+
+                    rQueue.add(request);
+                }
+
+
+            } catch (JSONException e) {
+                placeHolder.setText("Failed to get games.");
+            }
+        }
+
+
 
 
     }
