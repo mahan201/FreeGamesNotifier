@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 
@@ -49,9 +50,11 @@ public class NotificationHelper extends ContextWrapper {
     public Notification.Builder getNotification(String title, String body){
 
         return new Notification.Builder(getApplicationContext(),CHANNEL_ID)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(),
+                        R.drawable.logo))
                 .setContentText(body)
                 .setContentTitle(title)
-                .setSmallIcon(R.mipmap.ic_launcher_round)
+                .setSmallIcon(R.drawable.logo)
                 .setAutoCancel(true);
 
     }

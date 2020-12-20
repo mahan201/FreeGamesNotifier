@@ -5,11 +5,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -49,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_TITLE = "com.mahan.freegamesnotifier.postName";
     public static final String EXTRA_DESC = "com.mahan.freegamesnotifier.gameDesc";
     public static final String EXTRA_LINK = "com.mahan.freegamesnotifier.storeLink";
+    public static final int JOB_ID = 1263126;
 
     boolean placeHolderShowing;
     RequestQueue rQueue;
@@ -92,8 +97,41 @@ public class MainActivity extends AppCompatActivity {
         gamesList = new ArrayList<>();
         sharedPreferences = getSharedPreferences("com.mahan.freegamesnotifier",MODE_PRIVATE);
 
+        startJobService();
+
         loadGames();
     }
+
+    private void startJobService(){
+        if(!isJobServiceOn()) {
+            ComponentName componentName = new ComponentName(this, GameNotiJob.class);
+            JobInfo jobInfo = new JobInfo.Builder(JOB_ID, componentName)
+                    .setPeriodic(12 * 60 * 60000, 2 * 60 * 60000)
+                    .setPersisted(true)
+                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                    .build();
+
+            JobScheduler scheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+            scheduler.schedule(jobInfo);
+
+        }
+    }
+
+    public boolean isJobServiceOn() {
+        JobScheduler scheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE) ;
+
+        boolean hasBeenScheduled = false ;
+
+        for ( JobInfo jobInfo : scheduler.getAllPendingJobs() ) {
+            if ( jobInfo.getId() == JOB_ID ) {
+                hasBeenScheduled = true ;
+                break ;
+            }
+        }
+
+        return hasBeenScheduled ;
+    }
+
 
     public void loadGames(){
 
