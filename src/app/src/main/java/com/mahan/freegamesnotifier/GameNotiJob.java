@@ -4,7 +4,9 @@ import android.app.Notification;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.util.Log;
+import android.widget.ImageView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -38,7 +40,7 @@ public class GameNotiJob extends JobService {
                     @Override
                     public void onResponse(String response) {
                         try {
-                            JSONObject resp = new JSONObject(response);
+                            final JSONObject resp = new JSONObject(response);
                             String title = resp.getJSONObject("data").getJSONArray("children").getJSONObject(0).getJSONObject("data").getString("title");
                             String url = "https://api.rawg.io/api/games?search="+ title.replace(" ","+");
                             StringRequest request1 = new StringRequest(Request.Method.GET,
@@ -51,7 +53,32 @@ public class GameNotiJob extends JobService {
                                                 final String name = jsonObject.getJSONArray("results")
                                                         .getJSONObject(0)
                                                         .getString("name");
-                                                compareTopPost(params,name);
+
+                                                String img = jsonObject.getJSONArray("results")
+                                                        .getJSONObject(0)
+                                                        .getString("background_image");
+
+                                                ImageRequest imageRequest = new ImageRequest(
+                                                        img,
+                                                        new Response.Listener<Bitmap>() {
+                                                            @Override
+                                                            public void onResponse(Bitmap response) {
+                                                                    compareTopPost(params,name,response);
+                                                                }
+                                                        },
+                                                        200,
+                                                        200,
+                                                        ImageView.ScaleType.FIT_CENTER,
+                                                        Bitmap.Config.RGB_565,
+                                                        new Response.ErrorListener() {
+                                                            @Override
+                                                            public void onErrorResponse(VolleyError error) {
+
+                                                            }
+                                                        }
+                                                );
+
+                                                requestQueue.add(imageRequest);
                                             } catch (JSONException e) {
                                                 jobFinished(params,true);
                                             }
@@ -81,14 +108,14 @@ public class GameNotiJob extends JobService {
         requestQueue.add(request);
     }
 
-    private void compareTopPost(JobParameters params ,String title){
+    private void compareTopPost(JobParameters params ,String title, Bitmap img){
         if(isCancelled){return;}
         SharedPreferences sharedPreferences = getSharedPreferences("com.mahan.freegamesnotifier",MODE_PRIVATE);
         String prev = sharedPreferences.getString("LastTopPost","");
 
         if(!title.equals(prev)){
             NotificationHelper helper = new NotificationHelper(this);
-            Notification.Builder builder = helper.getNotification(title,"FREE NOW!");
+            Notification.Builder builder = helper.getNotification(title,"FREE NOW!", img);
             helper.getManager().notify(new Random().nextInt(),builder.build());
         }
         sharedPreferences.edit().putString("LastTopPost",title).apply();
