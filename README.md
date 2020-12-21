@@ -1,5 +1,5 @@
 # Free Games Notifier
-<img src="https://github.com/mahan201/FreeGamesNotifier/blob/master/src/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" width=250>
+<img src="https://github.com/mahan201/FreeGamesNotifier/blob/master/src/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png">
 
 Free Games Notifier is a simple to use app that scours the internet to find the latest games that are being offered for free. It also noties the user of the newest free games available.
 
