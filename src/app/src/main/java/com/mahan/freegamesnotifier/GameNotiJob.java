@@ -5,7 +5,6 @@ import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.widget.ImageView;
 
 import com.android.volley.Request;
@@ -16,6 +15,7 @@ import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,7 +33,7 @@ public class GameNotiJob extends JobService {
     private void doBackgroundTask(final JobParameters params){
         if(isCancelled){return;}
         final RequestQueue requestQueue = Volley.newRequestQueue(this);
-        String url = "https://www.reddit.com/r/freegames/top/.json?t=week";
+        String url = "https://www.reddit.com/r/freegames/top/.json?t=day";
 
         StringRequest request = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
@@ -41,57 +41,70 @@ public class GameNotiJob extends JobService {
                     public void onResponse(String response) {
                         try {
                             final JSONObject resp = new JSONObject(response);
-                            String title = resp.getJSONObject("data").getJSONArray("children").getJSONObject(0).getJSONObject("data").getString("title");
-                            String url = "https://api.rawg.io/api/games?search="+ title.replace(" ","+");
-                            StringRequest request1 = new StringRequest(Request.Method.GET,
-                                    url,
-                                    new Response.Listener<String>() {
-                                        @Override
-                                        public void onResponse(String response) {
-                                            try {
-                                                JSONObject jsonObject = new JSONObject(response);
-                                                final String name = jsonObject.getJSONArray("results")
-                                                        .getJSONObject(0)
-                                                        .getString("name");
+                            JSONArray posts = resp.getJSONObject("data").getJSONArray("children");
+                            for (int i = 0; i < posts.length(); i++) {
+                                JSONObject post = posts.getJSONObject(i).getJSONObject("data");
+                                final String title = post.getString("title");
+                                int likes = post.getInt("ups");
 
-                                                String img = jsonObject.getJSONArray("results")
-                                                        .getJSONObject(0)
-                                                        .getString("background_image");
+                                SharedPreferences sharedPreferences = getSharedPreferences("com.mahan.freegamesnotifier",MODE_PRIVATE);
+                                String prev = sharedPreferences.getString("LastTopPost","");
 
-                                                ImageRequest imageRequest = new ImageRequest(
-                                                        img,
-                                                        new Response.Listener<Bitmap>() {
-                                                            @Override
-                                                            public void onResponse(Bitmap response) {
-                                                                    compareTopPost(params,name,response);
+                                if( (likes > 50 && i == 0 && !title.equals(prev)) || (likes > 90 && !title.equals(prev))){
+                                    String url = "https://api.rawg.io/api/games?search="+ title.replace(" ","+");
+                                    StringRequest request1 = new StringRequest(Request.Method.GET,
+                                            url,
+                                            new Response.Listener<String>() {
+                                                @Override
+                                                public void onResponse(String response) {
+                                                    try {
+                                                        JSONObject jsonObject = new JSONObject(response);
+                                                        final String name = jsonObject.getJSONArray("results")
+                                                                .getJSONObject(0)
+                                                                .getString("name");
+
+                                                        String img = jsonObject.getJSONArray("results")
+                                                                .getJSONObject(0)
+                                                                .getString("background_image");
+
+                                                        ImageRequest imageRequest = new ImageRequest(
+                                                                img,
+                                                                new Response.Listener<Bitmap>() {
+                                                                    @Override
+                                                                    public void onResponse(Bitmap response) {
+                                                                        notifyPost(params,name,response,title);
+                                                                    }
+                                                                },
+                                                                200,
+                                                                200,
+                                                                ImageView.ScaleType.FIT_CENTER,
+                                                                Bitmap.Config.RGB_565,
+                                                                new Response.ErrorListener() {
+                                                                    @Override
+                                                                    public void onErrorResponse(VolleyError error) {
+                                                                        notifyPost(params,name,null,title);
+                                                                    }
                                                                 }
-                                                        },
-                                                        200,
-                                                        200,
-                                                        ImageView.ScaleType.FIT_CENTER,
-                                                        Bitmap.Config.RGB_565,
-                                                        new Response.ErrorListener() {
-                                                            @Override
-                                                            public void onErrorResponse(VolleyError error) {
+                                                        );
 
-                                                            }
-                                                        }
-                                                );
+                                                        requestQueue.add(imageRequest);
+                                                    } catch (JSONException e) {
+                                                        jobFinished(params,true);
+                                                    }
+                                                }
+                                            },
+                                            new Response.ErrorListener() {
+                                                @Override
+                                                public void onErrorResponse(VolleyError error) {
+                                                    jobFinished(params, true);
+                                                }
+                                            });
 
-                                                requestQueue.add(imageRequest);
-                                            } catch (JSONException e) {
-                                                jobFinished(params,true);
-                                            }
-                                        }
-                                    },
-                                    new Response.ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(VolleyError error) {
-                                            jobFinished(params, true);
-                                        }
-                                    });
+                                    requestQueue.add(request1);
+                                    break;
+                                }
+                            }
 
-                            requestQueue.add(request1);
                         } catch (JSONException e) {
                             jobFinished(params,true);
                         }
@@ -108,17 +121,21 @@ public class GameNotiJob extends JobService {
         requestQueue.add(request);
     }
 
-    private void compareTopPost(JobParameters params ,String title, Bitmap img){
+    private void notifyPost(JobParameters params , String title, Bitmap img, String redditTitle){
         if(isCancelled){return;}
         SharedPreferences sharedPreferences = getSharedPreferences("com.mahan.freegamesnotifier",MODE_PRIVATE);
-        String prev = sharedPreferences.getString("LastTopPost","");
 
-        if(!title.equals(prev)){
+        if(img != null){
             NotificationHelper helper = new NotificationHelper(this);
             Notification.Builder builder = helper.getNotification(title,"FREE NOW!", img);
             helper.getManager().notify(new Random().nextInt(),builder.build());
         }
-        sharedPreferences.edit().putString("LastTopPost",title).apply();
+        else {
+            NotificationHelper helper = new NotificationHelper(this);
+            Notification.Builder builder = helper.getNotification(title,"FREE NOW!");
+            helper.getManager().notify(new Random().nextInt(),builder.build());
+        }
+        sharedPreferences.edit().putString("LastTopPost",redditTitle).apply();
 
         jobFinished(params,false);
 

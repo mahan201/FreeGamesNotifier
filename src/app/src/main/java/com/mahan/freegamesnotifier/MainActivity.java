@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -42,6 +43,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -110,9 +112,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void startJobService(){
         if(!isJobServiceOn()) {
+            Toast.makeText(this,"STARTED A NEW JOB", Toast.LENGTH_LONG).show();
             ComponentName componentName = new ComponentName(this, GameNotiJob.class);
             JobInfo jobInfo = new JobInfo.Builder(JOB_ID, componentName)
-                    .setPeriodic(12 * 60 * 60000, 2 * 60 * 60000)
+                    .setPeriodic(7 * 60 * 60000, 2 * 60 * 60000)
                     .setPersisted(true)
                     .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                     .build();
@@ -242,7 +245,6 @@ public class MainActivity extends AppCompatActivity {
                                                         try {
                                                             jsonObject2 = new JSONObject(response);
                                                             String gameDescription = jsonObject2.getString("description_raw");
-                                                            gameDescription = gameDescription.replace("'","\'");
 
                                                             final String imgURL2;
                                                             if (jsonObject2.has("background_image_additional")) {
